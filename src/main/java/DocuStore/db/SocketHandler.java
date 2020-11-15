@@ -7,19 +7,37 @@ import java.io.*;
 import java.net.Socket;
 import java.time.LocalDateTime;
 
+/*
+    Pull from Socket util 5th ::
+        Store in String
+    Split String by ::
+        USER::KEY::ID::PATH::DATA::
+    Pass DATA to FileManager for writing to proper file
+ */
 public class SocketHandler implements Runnable {
     private final int timeout;
     private Socket socket;
     private LocalDateTime runTime;
     public boolean isClosed = false;
+    private boolean isRunning = false;
 
     public SocketHandler(Socket socket, int timeoutMillis){
         this.socket = socket;
         this.timeout = timeoutMillis;
     }
 
+    public synchronized boolean isRunning() {
+        return isRunning;
+    }
+
     @Override
     public void run() {
+        // Only run once
+        if (this.isRunning){
+            System.out.println("Request handled multiple times");
+            return;
+        }
+        isRunning = true;
         runTime = LocalDateTime.now();
         try(InputStream inputStream = socket.getInputStream()){
             socket.setSoTimeout(timeout);
@@ -49,6 +67,7 @@ public class SocketHandler implements Runnable {
                     e.printStackTrace();
                 }
             }
+            isRunning = false;
         }
         isClosed = true;
     }
