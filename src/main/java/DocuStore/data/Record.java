@@ -2,7 +2,6 @@ package DocuStore.data;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class Record implements Serializable {
     final public static long serialVersionUID = 11L;
@@ -39,8 +38,15 @@ public class Record implements Serializable {
         return r;
     }
 
+    public static String makeFilePathSafe(String str){
+        return str.replace("\\", "").replace(".","").replace("/", "");
+    }
+
     public String getFullPath(){
-        return BASE_PATH + File.separator + this.path + File.separator + this.id + ".svbl";
+        String safePath = makeFilePathSafe(this.path);
+        String safeId = makeFilePathSafe(this.id);
+
+        return BASE_PATH + File.separator + safePath + File.separator + safeId + ".svbl";
     }
 
     static String[] split(String s, String sep){

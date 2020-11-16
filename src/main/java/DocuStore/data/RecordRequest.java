@@ -5,7 +5,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
+
+import static DocuStore.data.Record.BASE_PATH;
+import static DocuStore.data.Record.makeFilePathSafe;
 
 public class RecordRequest implements Serializable {
     final public static long serialVersionUID = 11L;
@@ -45,7 +47,10 @@ public class RecordRequest implements Serializable {
     }
 
     public String getFullPath(){
-        return Record.BASE_PATH + File.separator + this.path + File.separator + this.id + ".svbl";
+        String safePath = makeFilePathSafe(this.path);
+        String safeId = makeFilePathSafe(this.id);
+
+        return BASE_PATH + File.separator + safePath + File.separator + safeId + ".svbl";
     }
 
     public byte[] getBytes(){

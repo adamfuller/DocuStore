@@ -158,9 +158,18 @@ public class App {
             Thread inputHandler = new Thread(() ->{
                 while(true){
                     if (console.hasNext()){
-                        String input = console.next();
+                        String[] input = console.next().split(" ");
+                        if (input.length == 0){
+                            continue;
+                        }
 //                        System.out.println("Main Read user input: " + input);
-                        if (input.strip().equals("t")){
+                        if (input[0].equals("t")){
+                            if (input.length == 2){
+                                int numTests = Integer.parseInt(input[1]);
+                                for (int i = 1; i<numTests; i++){
+                                    runTest(i, -1);
+                                }
+                            }
                             runTest(0, -1);
                         }
                     };

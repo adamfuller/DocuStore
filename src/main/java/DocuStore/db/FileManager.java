@@ -3,18 +3,21 @@ package DocuStore.db;
 import DocuStore.data.Record;
 import DocuStore.data.RecordRequest;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 public class FileManager {
 
-    private static SafeSet<String> fileStores = new SafeSet<>();
-    private static SafeSet<String> fileReads = new SafeSet<>();
+    private static final SafeSet<String> fileStores = new SafeSet<>();
+    private static final SafeMap<String, Integer> fileReads = new SafeMap<>();
 
     public static boolean store(Record record){
         try{
             String filePath = record.getFullPath();
             while (true){
-                if (!fileReads.contains(filePath) && !fileStores.add(filePath)){
+                if ((!fileReads.containsKey(filePath) || fileReads.get(filePath) == 0 ) && !fileStores.add(filePath)){
                     System.out.println("FiMa Waiting to write");
                     Thread.sleep(100);
                     continue;
@@ -60,17 +63,25 @@ public class FileManager {
                 }
             }
 
-            fileReads.add(filePath);
+            // If the key is present tick it up by 1, if not set it to 1
+            fileReads.apply(filePath, (val) -> val++, 1);
 
             try (FileInputStream fileInputStream = new FileInputStream(f)) {
                 byte[] bytes = SocketHandler.readInputStream(fileInputStream);
                 output = Record.fromBytes(bytes);
                 System.out.println("FiMa Read " + new String(bytes));
-                fileReads.remove(filePath);
+
+                // Decrement the value
+                fileReads.apply(filePath, (val) -> val--, 1);
+                // Remove the value if it's zero now
+                fileReads.removeIf(filePath, (v) -> v == 0);
                 break;
             } catch (IOException e) {
                 e.printStackTrace();
-                fileReads.remove(filePath);
+                // Decrement the value
+                fileReads.apply(filePath, (val) -> val--, 1);
+                // Remove the value if it's zero now
+                fileReads.removeIf(filePath, (v) -> v == 0);
                 break;
             }
         }
