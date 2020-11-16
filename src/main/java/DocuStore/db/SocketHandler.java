@@ -6,6 +6,7 @@ import DocuStore.data.RecordRequest;
 import java.io.*;
 import java.net.Socket;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 
 /*
     Pull from Socket util 5th ::
@@ -30,34 +31,62 @@ public class SocketHandler implements Runnable {
         return isRunning;
     }
 
+    static public byte[] readInputStream(InputStream is) throws IOException {
+        int count = 0;
+        byte[] buffer = new byte[1064];
+        StringBuilder sb = new StringBuilder();
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        try{
+            while((count = is.read(buffer)) > 0){
+                System.out.println("SoHa Read " + count + " bytes");
+                output.write(buffer, 0, count);
+
+                sb.append(new String(Arrays.copyOf(buffer, count)));
+                if (sb.toString().contains(":::")){
+                    break;
+                }
+            }
+        } catch (IOException e){
+            // Do nothing
+        }
+        return output.toByteArray();
+    }
+
     @Override
     public void run() {
         // Only run once
         if (this.isRunning){
-            System.out.println("Request handled multiple times");
+            System.out.println("SoHa Request handled multiple times");
             return;
         }
         isRunning = true;
         runTime = LocalDateTime.now();
         try(InputStream inputStream = socket.getInputStream()){
-            socket.setSoTimeout(timeout);
-            ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
-            Object obj =  objectInputStream.readObject();
-            if (obj instanceof Record<?>){
-                // Dast object to Record
-                Record<?> record = (Record<?>) obj;
-//                System.out.println("Record: " + record.toString());
+            System.out.println("SoHa Thread Got input stream");
+//            socket.setSoTimeout(timeout);
+            // Read all bytes
+            byte[] wholeInput = readInputStream(inputStream);
+            System.out.println("SoHa Read " + wholeInput.length + " bytes: " + new String(wholeInput));
+            Record record = Record.fromBytes(wholeInput);
+            RecordRequest recordRequest = RecordRequest.fromBytes(wholeInput);
+
+            if (record != null){
                 // Save the record
                 FileManager.store(record);
-            } else if (obj instanceof RecordRequest<?>){
-                RecordRequest<?> recordRequest = (RecordRequest<?>) obj;
-//                System.out.println("Record Request: " + recordRequest.toString());
-                Record<?> record = FileManager.fetch( (RecordRequest<?>) obj);
-                ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
-                objectOutputStream.writeObject(record);
-//                System.out.println("Fetched: " + String.valueOf(record));
+            } else if (recordRequest != null) {
+                record = FileManager.fetch(recordRequest);
+                if (record != null){
+                    socket.getOutputStream().write(record.getBytes());
+                    System.out.println("SoHa Sending response: " + new String(record.getBytes()));
+                } else {
+                    System.out.println("SoHa failed to fetch " + recordRequest.getFullPath());
+                    // Send end string
+                    socket.getOutputStream().write(":::".getBytes());
+                    socket.getOutputStream().flush();
+                    System.out.println("SoHa Record " + recordRequest.toString() + " was not present");
+                }
             }
-        } catch (IOException | ClassNotFoundException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         } finally{
             if (!socket.isClosed()){

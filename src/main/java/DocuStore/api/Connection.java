@@ -2,10 +2,9 @@ package DocuStore.api;
 
 import DocuStore.data.Record;
 import DocuStore.data.RecordRequest;
+import DocuStore.db.SocketHandler;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
@@ -32,18 +31,22 @@ public class Connection {
         return instance;
     }
 
-    public void storeInBackground(Record<?> record){
+    public void storeInBackground(Record record){
         new Thread(() -> instance.store(record)).run();
     }
 
-    public void store(Record<?> record){
+    public void store(Record record){
+        if (record == null){
+            System.out.println("Conn ---------------- NO NULL RECORD!!!! -----------------------");
+            return;
+        }
         lock.lock();
         Socket s = null;
         try {
+            System.out.println("Conn About to send record: " + new String(record.getBytes()));
             s = new Socket(Record.HOST, Record.PORT);
-            ObjectOutputStream objectOutputStream = new ObjectOutputStream(s.getOutputStream());
-            objectOutputStream.writeObject(record);
-            objectOutputStream.flush();
+            s.getOutputStream().write(record.getBytes());
+            s.getOutputStream().flush();
             s.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -61,24 +64,26 @@ public class Connection {
         }
     }
 
-    public void fetchThen(RecordRequest<?> recordRequest, Consumer<Record<?>>then){
+    public void fetchThen(RecordRequest recordRequest, Consumer<Record>then){
         then.accept(instance.fetch(recordRequest));
     }
 
-    public Record<?> fetch(RecordRequest<?> recordRequest){
+    public Record fetch(RecordRequest recordRequest){
 
-        try(Socket s = new Socket(Record.HOST, Record.PORT);) {
-
-            ObjectOutputStream objectOutputStream = new ObjectOutputStream(s.getOutputStream());
-            objectOutputStream.writeObject(recordRequest);
-            ObjectInputStream objectInputStream = new ObjectInputStream(s.getInputStream());
-            Object o = objectInputStream.readObject();
-            objectInputStream.close();
+        try(Socket s = new Socket(Record.HOST, Record.PORT)) {
+            s.setSoTimeout(2000);
+            byte[] bytes = recordRequest.getBytes();
+            s.getOutputStream().write(bytes);
+//            s.getOutputStream().flush();
+            System.out.println("Conn Sent fetch for: " + new String(bytes));
+            byte[] inputData = SocketHandler.readInputStream(s.getInputStream());
+            System.out.println("Conn Fetch result: " + new String(inputData));
             s.close();
-            if (o instanceof Record<?>){
-                return (Record<?>) o;
+            if (inputData.length <= ":::".getBytes().length){
+                return null;
             }
-        } catch (IOException | ClassNotFoundException e) {
+            return Record.fromBytes(inputData);
+        } catch (IOException e) {
             e.printStackTrace();
         }
         return null;

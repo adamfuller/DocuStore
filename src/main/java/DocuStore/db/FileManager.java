@@ -10,12 +10,12 @@ public class FileManager {
     private static SafeSet<String> fileStores = new SafeSet<>();
     private static SafeSet<String> fileReads = new SafeSet<>();
 
-    public static boolean store(Record<?> record){
+    public static boolean store(Record record){
         try{
             String filePath = record.getFullPath();
             while (true){
                 if (!fileReads.contains(filePath) && !fileStores.add(filePath)){
-//                    System.out.println("Waiting to write");
+                    System.out.println("FiMa Waiting to write");
                     Thread.sleep(100);
                     continue;
                 }
@@ -24,10 +24,12 @@ public class FileManager {
                 if (!f.getParentFile().exists()){
                     f.getParentFile().mkdirs();
                 }
+                System.out.println("FiMa About to write to file: " + filePath);
                 FileOutputStream fileOutputStream = new FileOutputStream(f);
-                ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
-                objectOutputStream.writeObject(record);
+                fileOutputStream.write(record.getBytes());
+                fileOutputStream.flush();
                 fileOutputStream.close();
+                System.out.println("FiMa Wrote : " + new String(record.getBytes()));
                 fileStores.remove(filePath);
                 break;
             }
@@ -38,13 +40,17 @@ public class FileManager {
         return true;
     }
 
-    public static Record<?> fetch(RecordRequest<?> request){
+    public static Record fetch(RecordRequest request){
         String filePath = request.getFullPath();
         File f = new File(filePath);
-//        System.out.println("Going to fetch: " + request.getFullPath());
+        Record output = null;
+        if (!f.exists()) {
+            return null;
+        }
+        System.out.println("FiMa Going to fetch: " + request.getFullPath());
         while (true) {
             if (fileStores.contains(filePath)){
-//                System.out.println("Waiting to read");
+                System.out.println("FiMa Waiting to read");
                 try {
                     Thread.sleep(100);
                     continue;
@@ -57,15 +63,17 @@ public class FileManager {
             fileReads.add(filePath);
 
             try (FileInputStream fileInputStream = new FileInputStream(f)) {
-                ObjectInputStream objectOutputStream = new ObjectInputStream(fileInputStream);
-                return (Record<?>) objectOutputStream.readObject();
-            } catch (IOException | ClassNotFoundException e) {
-                e.printStackTrace();
-                break;
-            } finally {
+                byte[] bytes = SocketHandler.readInputStream(fileInputStream);
+                output = Record.fromBytes(bytes);
+                System.out.println("FiMa Read " + new String(bytes));
                 fileReads.remove(filePath);
+                break;
+            } catch (IOException e) {
+                e.printStackTrace();
+                fileReads.remove(filePath);
+                break;
             }
         }
-        return null;
+        return output;
     }
 }
