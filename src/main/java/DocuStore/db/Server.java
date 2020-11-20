@@ -1,9 +1,6 @@
 package DocuStore.db;
 
-import DocuStore.data.Record;
-
 import java.io.IOException;
-import java.io.Serializable;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.BlockingQueue;
@@ -13,7 +10,7 @@ import java.util.concurrent.TimeUnit;
 import static java.lang.Thread.sleep;
 
 public class Server {
-    final public static String HOST = "192.168.1.8";
+    final public static String HOST = "localhost";
     final public static int PORT = 8081;
     private static final BlockingQueue<SocketHandler> handlerQueue = new LinkedBlockingQueue<>();
     private static Server instance;

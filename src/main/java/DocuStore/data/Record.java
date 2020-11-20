@@ -3,10 +3,13 @@ package DocuStore.data;
 import DocuStore.App;
 import DocuStore.db.EncryptionHelper;
 
-import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 
 public class Record implements Serializable {
     final public static long serialVersionUID = 11L;

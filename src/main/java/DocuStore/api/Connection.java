@@ -3,13 +3,10 @@ package DocuStore.api;
 import DocuStore.App;
 import DocuStore.data.Record;
 import DocuStore.data.RecordRequest;
-import DocuStore.db.InputStreamHelper;
 import DocuStore.db.Server;
-import DocuStore.db.SocketHandler;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.util.Optional;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 

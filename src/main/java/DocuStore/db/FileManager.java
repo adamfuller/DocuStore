@@ -6,7 +6,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Arrays;
 
 public class FileManager {
     final private static String BASE_PATH = System.getProperty("user.home") + File.separator + "Desktop" + File.separator +"test";
