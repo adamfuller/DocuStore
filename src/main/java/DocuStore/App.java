@@ -15,52 +15,57 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import static java.lang.Thread.sleep;
+
 public class App {
     private static final BlockingQueue<SocketHandler> handlerQueue = new LinkedBlockingQueue<>();
 
+    public static void printBytes(String prefix, byte[] data){
+        return;
+//        StringBuilder dataBuilder = new StringBuilder(prefix);
+//        for (byte b : data) {
+//            dataBuilder.append(Integer.toHexString(0xff & b)).append(" ");
+//        }
+//        System.out.println(dataBuilder.toString());
+    }
 
-    static public void runTest(int thread, int seconds){
+    static private void runTest(int thread, int seconds){
         Thread t = new Thread(() -> {
-            System.out.println("Main In test thread");
-            int i = 0;
             String id = "" + thread + "_test";
             Connection connection = Connection.getConnection("test", "test");
-            RecordRequest recordRequest = new RecordRequest("test", "test", "test", id);
+            RecordRequest recordRequest;
 
-            System.out.println("Main Test Thread " + thread + " about to send fetch request (init)");
-            Record record = connection.fetch(recordRequest);
-            if (record == null){
-                Record rec = null;
-                try{
-                    rec = new Record(id, "test", "initial_value".getBytes());
-                    rec.setData("initial_value");
-                } catch (Exception | Record.InvalidRecordException e){
-                    e.printStackTrace();
-                }
-                if (rec != null){
-                    System.out.println("Main Test Thread " + thread + " about to send store request (init)");
-                    connection.store(rec);
-                } else {
-                    System.out.println("Main Test Thread " + thread + " Failed to create record");
-                }
-            } else {
-                System.out.println("Main Test Thread " + thread + " Record fetched");
+            Record record;// = connection.fetch(recordRequest);
+            try {
+                Record rec = new Record(id, "test", "initial_value_getbytes".getBytes());
+                rec.setData("initial_value");
+                System.out.println("After set data:" + rec.getObjectFromData());
+
+                printBytes("in runTest: ", rec.getData());
+
+                connection.store(rec);
+
+            } catch (Record.InvalidRecordException e) {
+                e.printStackTrace();
             }
 
             final LocalDateTime start = LocalDateTime.now();
             do{
                 recordRequest = new RecordRequest("test", "test", "test", id);
-                System.out.println("Main Test Thread " + thread + " about to send fetch request");
+//                System.out.println("Main Test Thread " + thread + " about to send fetch request");
                 record = connection.fetch(recordRequest);
-                System.out.println("Record received : " + record);
+
                 if (record == null){
                     continue;
                 }
+
+                printBytes("in runTest after fetch: ", record.getData());
+
                 System.out.println("Main Fetched record with data : " + record.getObjectFromData());
-                HashMap<String, String> map = new HashMap<>();
-                map.put("Test", "value");
+//                HashMap<String, String> map = new HashMap<>();
+//                map.put("Test", "value");
                 // Set the data to a new value
-                if (record.setData(map)){
+                if (record.setData("second_value")){
                     System.out.println("Main Updated record data");
                 } else {
                     System.out.println("Failed to update record data");
@@ -68,34 +73,27 @@ public class App {
                 System.out.println("Main Test Thread " + thread + " about to send store request from fetch");
                 connection.store(record);
                 try {
-                    Thread.sleep(200);
+                    sleep(200);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }while(start.until(LocalDateTime.now(), ChronoUnit.SECONDS) <= seconds);
-//            System.out.println("Main Done testing on Thread " + thread);
         });
         t.start();
     }
 
-    static public void startNewProcessThread(int thread){
+    static private void startNewProcessThread(){
 
         Thread procThread = new Thread(() -> {
-            SocketHandler handler = null;
-            System.out.println("Main In Processing Thread");
+
             while (true){
                 try {
-
-                    handler = handlerQueue.poll(1000, TimeUnit.MILLISECONDS);
+                    SocketHandler handler = handlerQueue.poll(1000, TimeUnit.MILLISECONDS);
                     if (handler == null){
                         continue;
                     }
-                    if (!handler.isRunning()){
-                        System.out.println("Main Proc Thread " + thread + " About to handle request");
-                        handler.run();
-//                        System.out.println("Main Thread (" + thread + ") Request Handled");
-                    }
-                    Thread.sleep(1000);
+                    handler.run();
+                    sleep(100);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -104,9 +102,9 @@ public class App {
         procThread.start();
     }
 
-    private static Integer getNextArgInt(int index, String[] args){
-        return getNextArgInt(index, args, null);
-    }
+//    private static Integer getNextArgInt(int index, String[] args){
+//        return getNextArgInt(index, args, null);
+//    }
 
     private static Integer getNextArgInt(int index, String[] args, Integer defaultValue){
         if (index+1<args.length){
@@ -148,12 +146,10 @@ public class App {
 
             System.out.println("Main Processing Threads: " + numThreads);
             for (int i = 0; i<numThreads; i++){
-                startNewProcessThread(i);
+                startNewProcessThread();
             }
 
             Scanner console = new Scanner(System.in);
-            BlockingQueue<String> userInput = new LinkedBlockingQueue<>();
-
 
             Thread inputHandler = new Thread(() ->{
                 while(true){
@@ -162,7 +158,7 @@ public class App {
                         if (input.length == 0){
                             continue;
                         }
-//                        System.out.println("Main Read user input: " + input);
+
                         if (input[0].equals("t")){
                             if (input.length == 2){
                                 int numTests = Integer.parseInt(input[1]);
@@ -172,7 +168,7 @@ public class App {
                             }
                             runTest(0, -1);
                         }
-                    };
+                    }
                 }
             });
             inputHandler.start();

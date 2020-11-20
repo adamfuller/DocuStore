@@ -1,11 +1,14 @@
 package DocuStore.api;
 
+import DocuStore.App;
 import DocuStore.data.Record;
 import DocuStore.data.RecordRequest;
+import DocuStore.db.InputStreamHelper;
 import DocuStore.db.SocketHandler;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Optional;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
@@ -43,8 +46,10 @@ public class Connection {
         lock.lock();
         Socket s = null;
         try {
-            System.out.println("Conn About to send record: " + new String(record.getBytes()));
             s = new Socket(Record.HOST, Record.PORT);
+
+            App.printBytes("in Connection.store: ", record.getData());
+
             s.getOutputStream().write(record.getBytes());
             s.getOutputStream().flush();
             s.close();
@@ -69,24 +74,25 @@ public class Connection {
     }
 
     public Record fetch(RecordRequest recordRequest){
-
+        Record output = null;
         try(Socket s = new Socket(Record.HOST, Record.PORT)) {
             s.setSoTimeout(2000);
             byte[] bytes = recordRequest.getBytes();
+
+            App.printBytes("in Connection.fetch: ", bytes);
+
             s.getOutputStream().write(bytes);
-//            s.getOutputStream().flush();
-            System.out.println("Conn Sent fetch for: " + new String(bytes));
-            byte[] inputData = SocketHandler.readInputStream(s.getInputStream());
-            System.out.println("Conn Fetch result: " + new String(inputData));
+            s.getOutputStream().flush();
+
+            // The server only returns the bytes of the request
+            byte[] inputData = s.getInputStream().readAllBytes();
+
             s.close();
-            if (inputData.length <= ":::".getBytes().length){
-                return null;
-            }
-            return Record.fromBytes(inputData);
+            output = Record.getRecord(recordRequest.getId(), recordRequest.getPath(), inputData);
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return null;
+        return output;
     }
 
 

@@ -1,8 +1,9 @@
 package DocuStore.data;
 
+import DocuStore.db.EncryptionHelper;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 
@@ -12,6 +13,7 @@ import static DocuStore.data.Record.makeFilePathSafe;
 public class RecordRequest implements Serializable {
     final public static long serialVersionUID = 11L;
     final private String user,key, path, id;
+    private static EncryptionHelper encryptionHelper = EncryptionHelper.getInstance();
 
     public RecordRequest(String user, String key, String path, String id){
         this.user = user;
@@ -35,16 +37,22 @@ public class RecordRequest implements Serializable {
         return output;
     }
 
-    public static RecordRequest fromBytes(byte[] data) {
-        String dataString = new String(data);
-        String[] splitData = dataString.replace(":::", "").split("::");
-        if (splitData.length != 2){
-            return null;
-        }
-        String id = splitData[0];
-        String path = splitData[1];
-        return new RecordRequest("user", "key", path, id);
-    }
+//    public static RecordRequest fromBytes(byte[] data) {
+//        String dataString = new String(data);
+//        String[] splitData = dataString.replace(":::", "").split("::");
+//        if (splitData.length != 2){
+//            return null;
+//        }
+//        String id = splitData[0];
+//        String path = splitData[1];
+//        try{
+//            id = new String(encryptionHelper.decrypt(splitData[0].getBytes()));
+//            path = new String(encryptionHelper.decrypt(splitData[1].getBytes()));
+//        }catch (Exception e){
+//            e.printStackTrace();
+//        }
+//        return new RecordRequest("user", "key", path, id);
+//    }
 
     public String getFullPath(){
         String safePath = makeFilePathSafe(this.path);
@@ -63,15 +71,41 @@ public class RecordRequest implements Serializable {
             bytes.write(splitBytes);
             bytes.write(path.getBytes());
             bytes.write(endBytes);
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
         return bytes.toByteArray();
     }
 
+//    public byte[] getEncryptedBytes(){
+//        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+//        byte[] splitBytes = "::".getBytes();
+//        byte[] endBytes = ":::".getBytes();
+//
+//        try {
+//            bytes.write(encryptionHelper.encrypt(id.getBytes()));
+//            bytes.write(splitBytes);
+//            bytes.write(encryptionHelper.encrypt(path.getBytes()));
+//            bytes.write(endBytes);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//
+//        return bytes.toByteArray();
+//    }
+
     public String toString(){
         return "id:" + this.id
                 + ", path:" + this.path;
     }
+
+    public String getId() {
+        return this.id;
+    }
+
+    public String getPath() {
+        return this.path;
+    }
+
 }
