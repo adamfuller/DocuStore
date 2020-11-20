@@ -57,47 +57,6 @@ public class Record implements Serializable {
         return BASE_PATH + File.separator + safePath + File.separator + safeId + ".svbl";
     }
 
-    static String[] split(String s, String sep){
-        ArrayList<String> separated = new ArrayList<>();
-        int lastParse = 0;
-        for (int i = sep.length(); i<s.length()+sep.length(); i++){
-            if (s.startsWith(sep, i-sep.length())){
-                separated.add(s.substring(lastParse, i-sep.length()));
-                lastParse = i;
-                i+=sep.length()-1;
-            }
-        }
-        String[] output = new String[separated.size()];
-        separated.toArray(output);
-        return output;
-    }
-
-//    /**
-//     * Get a record from a byte array.
-//     * Byte array should be formatted id::path::data:::
-//     * Any : in data should be replaced with a _:_
-//     * @param data
-//     * @return
-//     */
-//    public static Record fromBytes(byte[] data){
-//        String dataString = new String(data);
-//        String[] splitData = dataString.replace(":::", "").split("::");
-//        if (splitData.length != 3){
-//            return null;
-//        }
-//        String id = splitData[0];
-//        String path = splitData[1];
-//        byte[] recordData = splitData[2].getBytes();
-//        try {
-//            id = new String(encryptionHelper.decrypt(splitData[0].getBytes()));
-//            path = new String(encryptionHelper.decrypt(splitData[1].getBytes()));
-//            recordData = encryptionHelper.decrypt(splitData[2].replaceAll("_:_", ":").getBytes());
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//
-//        return Record.getRecord(id, path, recordData);
-//    }
 
     public String toString(){
         return "id:" + this.id
@@ -142,11 +101,19 @@ public class Record implements Serializable {
             }
         }
 
+        try {
+            bos.close();
+            bytes.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         return bytes.toByteArray();
     }
 
     public boolean setData(Object object){
-
+        if (object == null){
+            return false;
+        }
         try {
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             ObjectOutputStream oos = new ObjectOutputStream(bos);
@@ -157,7 +124,6 @@ public class Record implements Serializable {
             byte[] data = bos.toByteArray();
 
             App.printBytes("in Record.setData: ", data);
-
             this.data = data;
             return true;
         } catch (IOException e) {
@@ -168,15 +134,20 @@ public class Record implements Serializable {
     }
 
     public Object getObjectFromData(){
-        try {
-            ByteArrayInputStream bis = new ByteArrayInputStream(this.data);
+        byte[] formattedData = this.getData();
 
-            App.printBytes("in Record.getObjectFromData: ", this.data);
+        try {
+            ByteArrayInputStream bis = new ByteArrayInputStream(formattedData);
+
+            App.printBytes("in Record.getObjectFromData: ", formattedData);
 
             ObjectInputStream ois = new ObjectInputStream(bis);
+            ois.close();
+            bis.close();
             return ois.readObject();
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
+            App.printBytes("Failed to parse object from data: ", formattedData);
         }
 
         return null;
@@ -201,6 +172,11 @@ public class Record implements Serializable {
             bos.write(this.data[i]);
         }
 
+        try {
+            bos.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         return bos.toByteArray();
     }
 

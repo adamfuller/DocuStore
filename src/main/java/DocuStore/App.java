@@ -20,12 +20,12 @@ public class App {
     private static final BlockingQueue<SocketHandler> handlerQueue = new LinkedBlockingQueue<>();
 
     public static void printBytes(String prefix, byte[] data){
-        return;
-//        StringBuilder dataBuilder = new StringBuilder(prefix);
-//        for (byte b : data) {
-//            dataBuilder.append(Integer.toHexString(0xff & b)).append(" ");
-//        }
-//        System.out.println(dataBuilder.toString());
+//        return;
+        StringBuilder dataBuilder = new StringBuilder(prefix);
+        for (byte b : data) {
+            dataBuilder.append(Integer.toHexString(0xff & b)).append(" ");
+        }
+        System.out.println(dataBuilder.toString());
     }
 
     static private void runTest(int thread, int seconds){
@@ -37,7 +37,11 @@ public class App {
             Record record;// = connection.fetch(recordRequest);
             try {
                 Record rec = new Record(id, "test", "initial_value_getbytes".getBytes());
-                rec.setData("initial_value");
+                HashMap<String, Object> map = new HashMap<>();
+                map.put("Test", "value");
+                map.put("thread", "" + thread);
+                map.put("iteration", 0);
+                rec.setData(map);
                 System.out.println("After set data:" + rec.getObjectFromData());
 
                 printBytes("in runTest: ", rec.getData());
@@ -51,9 +55,7 @@ public class App {
 
 
             final LocalDateTime start = LocalDateTime.now();
-            int iteration = -1;
             do{
-                iteration++;
                 recordRequest = new RecordRequest("test", "test", "test", id);
 //                System.out.println("Main Test Thread " + thread + " about to send fetch request");
                 record = connection.fetch(recordRequest);
@@ -65,20 +67,21 @@ public class App {
                 printBytes("in runTest after fetch: ", record.getData());
 
                 System.out.println("Main Fetched record with data : " + record.getObjectFromData());
-                HashMap<String, String> map = new HashMap<>();
-                map.put("Test", "value");
-                map.put("iteration", "" + iteration);
-                map.put("thread", "" + thread);
+                HashMap<String, Object> map = (HashMap<String, Object>) record.getObjectFromData();
+                int iter = (int) map.get("iteration");
+                iter++;
+                map.put("iteration", iter);
+                map.put("iteration_sq", Math.sqrt(iter*1.0));
                 // Set the data to a new value
-                if (record.setData(map)){
-                    System.out.println("Main Updated record data");
-                } else {
+                if (!record.setData(map)){
+//                    System.out.println("Main Updated record data");
+//                } else {
                     System.out.println("Failed to update record data");
                 }
                 System.out.println("Main Test Thread " + thread + " about to send store request from fetch");
                 connection.store(record);
                 try {
-                    sleep(250);
+                    sleep(50);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
