@@ -10,8 +10,6 @@ import java.util.Collection;
 
 public class Record implements Serializable {
     final public static long serialVersionUID = 11L;
-    final public static String HOST = "localhost";
-    final public static int PORT = 8081;
     final public static byte[] NULL_RECORD_BYTES = ":::".getBytes();
     private static EncryptionHelper encryptionHelper = EncryptionHelper.getInstance();
     /**

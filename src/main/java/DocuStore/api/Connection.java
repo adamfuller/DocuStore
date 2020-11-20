@@ -4,6 +4,7 @@ import DocuStore.App;
 import DocuStore.data.Record;
 import DocuStore.data.RecordRequest;
 import DocuStore.db.InputStreamHelper;
+import DocuStore.db.Server;
 import DocuStore.db.SocketHandler;
 
 import java.io.IOException;
@@ -46,7 +47,7 @@ public class Connection {
         lock.lock();
         Socket s = null;
         try {
-            s = new Socket(Record.HOST, Record.PORT);
+            s = new Socket(Server.HOST, Server.PORT);
 
             App.printBytes("in Connection.store: ", record.getData());
 
@@ -75,8 +76,8 @@ public class Connection {
 
     public Record fetch(RecordRequest recordRequest){
         Record output = null;
-        try(Socket s = new Socket(Record.HOST, Record.PORT)) {
-            s.setSoTimeout(2000);
+        try(Socket s = new Socket(Server.HOST, Server.PORT)) {
+            s.setSoTimeout(5000);
             byte[] bytes = recordRequest.getBytes();
 
             App.printBytes("in Connection.fetch: ", bytes);

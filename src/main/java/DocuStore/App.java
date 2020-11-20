@@ -3,11 +3,10 @@ package DocuStore;
 import DocuStore.api.Connection;
 import DocuStore.data.Record;
 import DocuStore.data.RecordRequest;
+import DocuStore.db.Server;
 import DocuStore.db.SocketHandler;
 
 import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -45,12 +44,16 @@ public class App {
 
                 connection.store(rec);
 
-            } catch (Record.InvalidRecordException e) {
+                Thread.sleep(1000);
+            } catch (Record.InvalidRecordException | InterruptedException e) {
                 e.printStackTrace();
             }
 
+
             final LocalDateTime start = LocalDateTime.now();
+            int iteration = -1;
             do{
+                iteration++;
                 recordRequest = new RecordRequest("test", "test", "test", id);
 //                System.out.println("Main Test Thread " + thread + " about to send fetch request");
                 record = connection.fetch(recordRequest);
@@ -62,10 +65,12 @@ public class App {
                 printBytes("in runTest after fetch: ", record.getData());
 
                 System.out.println("Main Fetched record with data : " + record.getObjectFromData());
-//                HashMap<String, String> map = new HashMap<>();
-//                map.put("Test", "value");
+                HashMap<String, String> map = new HashMap<>();
+                map.put("Test", "value");
+                map.put("iteration", "" + iteration);
+                map.put("thread", "" + thread);
                 // Set the data to a new value
-                if (record.setData("second_value")){
+                if (record.setData(map)){
                     System.out.println("Main Updated record data");
                 } else {
                     System.out.println("Failed to update record data");
@@ -73,7 +78,7 @@ public class App {
                 System.out.println("Main Test Thread " + thread + " about to send store request from fetch");
                 connection.store(record);
                 try {
-                    sleep(200);
+                    sleep(250);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -81,30 +86,6 @@ public class App {
         });
         t.start();
     }
-
-    static private void startNewProcessThread(){
-
-        Thread procThread = new Thread(() -> {
-
-            while (true){
-                try {
-                    SocketHandler handler = handlerQueue.poll(1000, TimeUnit.MILLISECONDS);
-                    if (handler == null){
-                        continue;
-                    }
-                    handler.run();
-                    sleep(100);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-        procThread.start();
-    }
-
-//    private static Integer getNextArgInt(int index, String[] args){
-//        return getNextArgInt(index, args, null);
-//    }
 
     private static Integer getNextArgInt(int index, String[] args, Integer defaultValue){
         if (index+1<args.length){
@@ -123,31 +104,28 @@ public class App {
         boolean shouldTest = inputArgs.contains("-t");
         int numThreads = 4;
         int testThreads = 2;
+        int duration = 5;
 
         for (int i = 0; i<args.length; i++){
             if (args[i].equals("-n") || args[i].equals("--numThreads")){
                 numThreads = getNextArgInt(i, args, 4);
             } else if (args[i].equals("-t")){
                 testThreads = getNextArgInt(i, args, 2);
+            } else if (args[i].equals("-s")) {
+                duration = getNextArgInt(i, args, 5);
             }
         }
 
-
-        ServerSocket serverSocket = null;
         try {
-            serverSocket = new ServerSocket(Record.PORT);
 
             if (shouldTest){
                 System.out.println("Main Testing");
                 for (int i = 0; i<testThreads; i++) {
-                    runTest(i, 5);
+                    runTest(i, duration);
                 }
             }
 
             System.out.println("Main Processing Threads: " + numThreads);
-            for (int i = 0; i<numThreads; i++){
-                startNewProcessThread();
-            }
 
             Scanner console = new Scanner(System.in);
 
@@ -174,34 +152,13 @@ public class App {
             inputHandler.start();
 
             // Start processing requests
-            while(true){
-                // wait for a request
-                Socket socket = serverSocket.accept();
-                if (socket == null){
-                    continue;
-                }
-                SocketHandler sh = new SocketHandler(socket, 5000);
-
-                try {
-                    handlerQueue.put(sh);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                    break;
-                }
+            Server server = Server.getServer(numThreads);
+            if (server != null){
+                server.start(true);
             }
-
-
 
         } catch (IOException e) {
             e.printStackTrace();
-        }finally{
-            if (serverSocket != null){
-                try {
-                    serverSocket.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
         }
     }
 
