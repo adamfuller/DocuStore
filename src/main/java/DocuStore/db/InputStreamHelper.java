@@ -5,6 +5,7 @@ import DocuStore.App;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -12,6 +13,10 @@ import java.util.Optional;
 public class InputStreamHelper {
 
 //    private static byte[] PUBLIC_KEY_REQUEST = "PUBLIC_KEY:::".getBytes();
+    private static final String[] labels = new String[]{"id", "path", "data"};
+    private static final int ID_INDEX = 0;
+    private static final int PATH_INDEX = 1;
+    private static final int DATA_INDEX = 2;
 
     static private byte[] readInputStream(InputStream is) throws IOException {
         int count;
@@ -34,11 +39,12 @@ public class InputStreamHelper {
         try {
             byte[] input = readInputStream(stream);
 //            System.out.println("InSH process output: " + new String(input));
-            TripleByte splitData = TripleByte.split(input);
 
-            String id = new String(splitData.id);
-            String path = new String(splitData.path);
-            byte[] data = splitData.data;
+            ArrayList<byte[]> splitData = splitBytes(input);
+
+            String id = splitData.size() > ID_INDEX ? new String(splitData.get(ID_INDEX)) : null;
+            String path = splitData.size() > PATH_INDEX ? new String(splitData.get(PATH_INDEX)) : null;
+            byte[] data =  splitData.size() > DATA_INDEX ? splitData.get(DATA_INDEX) : new byte[0];
 
             App.printBytes("in InputStreamHelper.process: ", data);
 
@@ -64,47 +70,45 @@ public class InputStreamHelper {
         return Optional.empty();
     }
 
-    private static class TripleByte {
-        byte[] id, path, data;
-        private TripleByte(byte[] id, byte[]path, byte[] data){
-            this.id = id;
-            this.path = path;
-            this.data = data;
+    public static String getByteString(byte[] data){
+//        return;
+        StringBuilder dataBuilder = new StringBuilder();
+        for (byte b : data) {
+            dataBuilder.append(Integer.toHexString(0xff & b)).append(" ");
         }
-        public static TripleByte split(byte[] bytes){
 
-            App.printBytes("in TripleByte.split all: ", bytes);
+        return dataBuilder.toString();
+    }
 
-            byte[] id = new byte[0];
-            byte[] path = new byte[0];
-            byte[] data = new byte[0];
-            int lastSplit = 0;
-            int splitIndex = 0;
-            int index;
+    private static void printArray(ArrayList<byte[]> list){
+        StringBuilder sb = new StringBuilder("{ ");
+        for (byte[] data : list){
+            sb.append(getByteString(data));
+            sb.append(", ");
+        }
+        sb.append("}");
+        System.out.println(sb.toString());
+    }
 
-            byte lastByte = ' ';
-            for (index = 0; index < bytes.length; index++){
-                if (bytes[index] == ':' && lastByte == ':'){
-                    if (splitIndex == 0){
-                        id = Arrays.copyOfRange(bytes, 0, index-1);
-                        lastSplit = index+1;
-                    } else if (splitIndex == 1){
-                        path = Arrays.copyOfRange(bytes, lastSplit, index-1);
-                        lastSplit = index+1;
-                    } else if (splitIndex == 2){
-                        if (lastSplit < (index-1)){
-                            data = Arrays.copyOfRange(bytes, lastSplit, index-1);
-                        }
-                        break;
-                    }
-                    splitIndex++;
-                }
+    private static ArrayList<byte[]> splitBytes(byte[] bytes){
+        int lastSplit = 0;
+        byte lastByte = '!';
+        ArrayList<byte[]> output = new ArrayList<>();
+
+        for (int index = 0; index < bytes.length; index++){
+            if (bytes[index] == ':' && lastByte == ':'){
+                output.add(Arrays.copyOfRange(bytes, lastSplit, index-1));
+                lastSplit=index+1;
+                index += 1;
+            }
+            if (index < bytes.length -1){
                 lastByte = bytes[index];
             }
-
-            App.printBytes("in TripleByte.split data: ", data);
-
-            return new TripleByte(id, path, data);
         }
+
+        printArray(output);
+
+        return output;
     }
+
 }

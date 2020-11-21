@@ -49,18 +49,6 @@ public class Record implements Serializable {
         return r;
     }
 
-    public static String makeFilePathSafe(String str){
-        return str.replace("\\", "").replace(".","").replace("/", "");
-    }
-
-    public String getFullPath(){
-        String safePath = makeFilePathSafe(this.path);
-        String safeId = makeFilePathSafe(this.id);
-
-        return BASE_PATH + File.separator + safePath + File.separator + safeId + ".svbl";
-    }
-
-
     public String toString(){
         return "id:" + this.id
                 + ", path:" + this.path
@@ -156,6 +144,13 @@ public class Record implements Serializable {
         return null;
     }
 
+    public void setId(String id){
+        this.id = id;
+    }
+
+    public void setPath(String path){
+        this.path = path;
+    }
 
     /**
      * Get the data, identical to input from setData

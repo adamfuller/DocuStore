@@ -30,12 +30,13 @@ public class App {
     static private void runTest(int thread, int seconds){
         Thread t = new Thread(() -> {
             String id = "" + thread + "_test";
+            String path = "test_" + thread + "_path/";
             Connection connection = Connection.getConnection("test", "test");
             RecordRequest recordRequest;
 
             Record record;// = connection.fetch(recordRequest);
             try {
-                Record rec = new Record(id, "test", "initial_value_getbytes".getBytes());
+                Record rec = new Record(id, path, "initial_value_getbytes".getBytes());
                 HashMap<String, Object> map = new HashMap<>();
                 map.put("Test", "value");
                 map.put("thread", "" + thread);
@@ -55,13 +56,14 @@ public class App {
 
             final LocalDateTime start = LocalDateTime.now();
             do{
-                recordRequest = new RecordRequest("test", "test", "test", id);
+                recordRequest = new RecordRequest("test", "test", path, id);
 //                System.out.println("Main Test Thread " + thread + " about to send fetch request");
                 record = connection.fetch(recordRequest);
 
                 if (record == null){
                     continue;
                 }
+
 
                 printBytes("in runTest after fetch: ", record.getData());
 
@@ -71,6 +73,9 @@ public class App {
                 iter++;
                 map.put("iteration", iter);
                 map.put("iteration_sq", Math.sqrt(iter*1.0));
+
+                record.setId("" + (iter%9) + "_test");
+
                 // Set the data to a new value
                 if (!record.setData(map)){
 //                    System.out.println("Main Updated record data");

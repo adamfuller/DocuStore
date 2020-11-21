@@ -3,12 +3,8 @@ package DocuStore.data;
 import DocuStore.db.EncryptionHelper;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
-
-import static DocuStore.data.Record.BASE_PATH;
-import static DocuStore.data.Record.makeFilePathSafe;
 
 public class RecordRequest implements Serializable {
     final public static long serialVersionUID = 11L;
@@ -37,30 +33,6 @@ public class RecordRequest implements Serializable {
         return output;
     }
 
-//    public static RecordRequest fromBytes(byte[] data) {
-//        String dataString = new String(data);
-//        String[] splitData = dataString.replace(":::", "").split("::");
-//        if (splitData.length != 2){
-//            return null;
-//        }
-//        String id = splitData[0];
-//        String path = splitData[1];
-//        try{
-//            id = new String(encryptionHelper.decrypt(splitData[0].getBytes()));
-//            path = new String(encryptionHelper.decrypt(splitData[1].getBytes()));
-//        }catch (Exception e){
-//            e.printStackTrace();
-//        }
-//        return new RecordRequest("user", "key", path, id);
-//    }
-
-    public String getFullPath(){
-        String safePath = makeFilePathSafe(this.path);
-        String safeId = makeFilePathSafe(this.id);
-
-        return BASE_PATH + File.separator + safePath + File.separator + safeId + ".svbl";
-    }
-
     public byte[] getBytes(){
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         byte[] splitBytes = "::".getBytes();
@@ -77,23 +49,6 @@ public class RecordRequest implements Serializable {
 
         return bytes.toByteArray();
     }
-
-//    public byte[] getEncryptedBytes(){
-//        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-//        byte[] splitBytes = "::".getBytes();
-//        byte[] endBytes = ":::".getBytes();
-//
-//        try {
-//            bytes.write(encryptionHelper.encrypt(id.getBytes()));
-//            bytes.write(splitBytes);
-//            bytes.write(encryptionHelper.encrypt(path.getBytes()));
-//            bytes.write(endBytes);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//
-//        return bytes.toByteArray();
-//    }
 
     public String toString(){
         return "id:" + this.id
