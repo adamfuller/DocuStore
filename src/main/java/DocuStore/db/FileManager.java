@@ -15,7 +15,7 @@ public class FileManager {
     private static String makeSafe(String filePath){
         String sep = File.separator;
         // Replace all current filepath separators with current filesystem ones
-        filePath = filePath.replaceAll("[/\\\\]", sep);
+        filePath = filePath.replace("/", sep).replace("\\", sep);
         // Remove any . to prevent dot notation funny business
         return filePath.replace(".", "");
     }
@@ -71,7 +71,7 @@ public class FileManager {
         File f = new File(filePath);
         byte[] output = new byte[0];
         if (!f.exists()) {
-            return null;
+            return new byte[0];
         }
         while (true) {
             if (fileStores.contains(filePath)){
