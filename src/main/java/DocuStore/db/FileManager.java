@@ -3,6 +3,7 @@ package DocuStore.db;
 import DocuStore.App;
 
 import java.io.*;
+import java.util.Arrays;
 
 public class FileManager {
     final private static String BASE_PATH = System.getProperty("user.home") + File.separator + "Desktop" + File.separator +"test";
@@ -14,12 +15,18 @@ public class FileManager {
         if (filePath == null){
             return null;
         }
+
         System.out.println("Making safe: " + filePath);
         String sep = File.separator;
         // Replace all current filepath separators with current filesystem ones
         filePath = filePath.replace("/", sep).replace("\\", sep);
+
+        if (!filePath.startsWith(File.separator)){
+            filePath = File.separator + filePath;
+        }
+
         // Remove any . to prevent dot notation funny business
-        return filePath.replace("..", "");
+        return BASE_PATH + filePath.replace("..", "");
     }
 
     private static String makeSafe(String id, String path){
@@ -27,11 +34,9 @@ public class FileManager {
         if (!safeFilePath.endsWith(File.separator)){
             safeFilePath += File.separator;
         }
-        if (!safeFilePath.startsWith(File.separator)){
-            safeFilePath = File.separator + safeFilePath;
-        }
+
         String safeId = makeSafe(id);
-        return BASE_PATH + safeFilePath + safeId + ".svbl";
+        return safeFilePath + safeId + ".svbl";
     }
 
     public static boolean store(String id, String path, byte[] data){
@@ -88,7 +93,7 @@ public class FileManager {
             try (FileInputStream fileInputStream = new FileInputStream(file)) {
                 output = fileInputStream.readAllBytes();
 
-                App.printBytes("in FileManager.fetch: ", output);
+//                App.printBytes("in FileManager.fetch: ", output);
 
                 fileInputStream.close();
                 // Decrement the value
@@ -115,6 +120,7 @@ public class FileManager {
             File p = new File(makeSafe(path));
             String[] files = p.list((dir, name) -> name.endsWith(".svbl"));
             if (files == null){
+                System.out.println("Files were null");
                 return NONEXISTENT_FILE_CONTENTS;
             }
             System.out.println("Doing multi-fetch request");
@@ -130,8 +136,10 @@ public class FileManager {
     }
 
     private static byte[] fetchMultiple(String... filePaths) {
+        System.out.println("in fetchMultiple");
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         final byte[] separator = "::".getBytes();
+        System.out.println(Arrays.toString(filePaths));
         for (String path : filePaths){
             String folderPath = makeSafe(path);
             File file = new File(folderPath);

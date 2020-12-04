@@ -49,7 +49,7 @@ public class InputStreamHelper {
 
             System.out.println("Fetch Request for: id:" + id +", path:" + path);
 
-            App.printBytes("in InputStreamHelper.process: ", data);
+            if (isFetchRequest) App.printBytes("in InputStreamHelper.process: ", data);
 
 //            System.out.println("ID: " + id + ", PATH: " + path + ", DATA: " + new String(data).replace("\n", ""));
 
