@@ -21,10 +21,6 @@ public class FileManager {
         // Replace all current filepath separators with current filesystem ones
         filePath = filePath.replace("/", sep).replace("\\", sep);
 
-        if (!filePath.startsWith(File.separator)){
-            filePath = File.separator + filePath;
-        }
-
         // Remove any . to prevent dot notation funny business
         return filePath.replace("..", "");
     }
@@ -33,6 +29,10 @@ public class FileManager {
         String safeFilePath = makeSafe(path);
         if (!safeFilePath.endsWith(File.separator)){
             safeFilePath += File.separator;
+        }
+
+        if (!safeFilePath.startsWith(File.separator)){
+            safeFilePath = File.separator + safeFilePath;
         }
 
         String safeId = makeSafe(id);
