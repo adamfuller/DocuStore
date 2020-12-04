@@ -36,7 +36,7 @@ public class FileManager {
         }
 
         String safeId = makeSafe(id);
-        return BASE_PATH + safeFilePath + safeId + ".svbl";
+        return BASE_PATH + safeFilePath + (id != null ? (safeId + ".svbl") : "");
     }
 
     public static boolean store(String id, String path, byte[] data){
@@ -117,10 +117,11 @@ public class FileManager {
     public static byte[] fetch(String id, String path){
         System.out.println("in FileManager.fetch: " + fileReads + ", " + fileStores);
         if ( (id == null || id.trim().length() == 0) && path != null ){
-            File p = new File(makeSafe(path));
+            File p = new File(makeSafe(null, path));
+
             String[] files = p.list((dir, name) -> name.endsWith(".svbl"));
             if (files == null){
-                System.out.println("Files were null");
+                System.out.println("Files were null, " + p.getAbsolutePath());
                 return NONEXISTENT_FILE_CONTENTS;
             }
             System.out.println("Doing multi-fetch request");
