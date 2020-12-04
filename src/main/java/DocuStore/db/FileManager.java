@@ -2,22 +2,20 @@ package DocuStore.db;
 
 import DocuStore.App;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 
 public class FileManager {
     final private static String BASE_PATH = System.getProperty("user.home") + File.separator + "Desktop" + File.separator +"test";
     private static final SafeSet<String> fileStores = new SafeSet<>();
     private static final SafeMap<String, Integer> fileReads = new SafeMap<>();
+    private static final byte[] NONEXISTENT_FILE_CONTENTS = " ".getBytes();
 
     private static String makeSafe(String filePath){
         String sep = File.separator;
         // Replace all current filepath separators with current filesystem ones
         filePath = filePath.replace("/", sep).replace("\\", sep);
         // Remove any . to prevent dot notation funny business
-        return filePath.replace(".", "");
+        return filePath.replace("..", "");
     }
 
     private static String makeSafe(String id, String path){
@@ -33,6 +31,7 @@ public class FileManager {
     }
 
     public static boolean store(String id, String path, byte[] data){
+        System.out.println("in FileManager.store: " + fileReads + ", " + fileStores);
         try{
             String filePath = makeSafe(id, path);
             System.out.println("Storing at: "  + filePath);
@@ -64,15 +63,10 @@ public class FileManager {
         return true;
     }
 
-    public static byte[] fetch(String id, String path){
-        // TODO: From id and path
-        String filePath = makeSafe(id, path);
-        System.out.println("Fetch request from " + filePath);
-        File f = new File(filePath);
+    private static byte[] fetch(File file){
+        String filePath = file.getPath();
         byte[] output = new byte[0];
-        if (!f.exists()) {
-            return new byte[0];
-        }
+
         while (true) {
             if (fileStores.contains(filePath)){
                 try {
@@ -87,7 +81,7 @@ public class FileManager {
             // If the key is present tick it up by 1, if not set it to 1
             fileReads.apply(filePath, (val) -> val++, 1);
 
-            try (FileInputStream fileInputStream = new FileInputStream(f)) {
+            try (FileInputStream fileInputStream = new FileInputStream(file)) {
                 output = fileInputStream.readAllBytes();
 
                 App.printBytes("in FileManager.fetch: ", output);
@@ -107,6 +101,54 @@ public class FileManager {
                 break;
             }
         }
+
         return output;
+    }
+
+    public static byte[] fetch(String id, String path){
+        System.out.println("in FileManager.fetch: " + fileReads + ", " + fileStores);
+        if ( (id == null || id.trim().length() == 0) && path != null ){
+            File p = new File(path);
+            String[] files = p.list((dir, name) -> name.endsWith(".svbl"));
+            if (files == null){
+                return NONEXISTENT_FILE_CONTENTS;
+            }
+            return fetchMultiple(files);
+        }
+        String filePath = makeSafe(id, path);
+        System.out.println("Fetch request from " + filePath);
+        File f = new File(filePath);
+        if (!f.exists()) {
+            return NONEXISTENT_FILE_CONTENTS;
+        }
+        return fetch(f);
+    }
+
+    private static byte[] fetchMultiple(String... filePaths) {
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        final byte[] separator = "::".getBytes();
+        for (String path : filePaths){
+            String folderPath = makeSafe(path);
+            File file = new File(folderPath);
+            if (!file.exists()){
+                try {
+                    output.write(NONEXISTENT_FILE_CONTENTS);
+                    output.write(separator);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                continue;
+            }
+
+            try{
+                output.write(fetch(file));
+                output.write(separator);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        }
+
+        return output.toByteArray();
     }
 }

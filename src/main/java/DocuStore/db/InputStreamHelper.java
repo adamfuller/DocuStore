@@ -45,12 +45,13 @@ public class InputStreamHelper {
             String id = splitData.size() > ID_INDEX ? new String(splitData.get(ID_INDEX)) : null;
             String path = splitData.size() > PATH_INDEX ? new String(splitData.get(PATH_INDEX)) : null;
             byte[] data =  splitData.size() > DATA_INDEX ? splitData.get(DATA_INDEX) : new byte[0];
+            boolean isFetchRequest = data.length <= 3;
 
             App.printBytes("in InputStreamHelper.process: ", data);
 
 //            System.out.println("ID: " + id + ", PATH: " + path + ", DATA: " + new String(data).replace("\n", ""));
 
-            if (data.length <= 3){
+            if (isFetchRequest){
                 System.out.println("Fetch Request");
                 // Input was a record request
                 return Optional.ofNullable(FileManager.fetch(id, path));

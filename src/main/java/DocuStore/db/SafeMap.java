@@ -85,5 +85,10 @@ class SafeMap<K, V> {
         writeLock.unlock();
     }
 
-
+    @Override
+    public String toString() {
+        return "SafeMap{" +
+                "items=" + items +
+                '}';
+    }
 }

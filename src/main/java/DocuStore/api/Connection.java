@@ -46,6 +46,7 @@ public class Connection {
         try {
             s = new Socket(Server.HOST, Server.PORT);
 
+            System.out.println("in Connection.store: " + record.getObjectFromData());
             App.printBytes("in Connection.store: ", record.getData());
 
             s.getOutputStream().write(record.getBytes());

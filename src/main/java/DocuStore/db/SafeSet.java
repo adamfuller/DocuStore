@@ -67,5 +67,10 @@ class SafeSet<E> {
         }
     }
 
-
+    @Override
+    public String toString() {
+        return "SafeSet{" +
+                "items=" + items +
+                '}';
+    }
 }

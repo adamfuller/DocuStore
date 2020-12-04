@@ -74,7 +74,7 @@ public class App {
                 map.put("iteration", iter);
                 map.put("iteration_sq", Math.sqrt(iter*1.0));
 
-                record.setId("" + (iter%9) + "_test");
+//                record.setId("" + (iter%9) + "_test");
 
                 // Set the data to a new value
                 if (!record.setData(map)){
@@ -85,7 +85,7 @@ public class App {
                 System.out.println("Main Test Thread " + thread + " about to send store request from fetch");
                 connection.store(record);
                 try {
-                    sleep(50);
+                    sleep(200);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
