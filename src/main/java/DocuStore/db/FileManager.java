@@ -137,13 +137,12 @@ public class FileManager {
     }
 
     private static byte[] fetchMultiple(String... filePaths) {
-        System.out.println("in fetchMultiple");
+        System.out.println("in fetchMultiple " + Arrays.toString(filePaths));
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         final byte[] separator = "::".getBytes();
-        System.out.println(Arrays.toString(filePaths));
         for (String path : filePaths){
-            String folderPath = makeSafe(path);
-            File file = new File(folderPath);
+            String filePath = makeSafe(null, path);
+            File file = new File(filePath);
             if (!file.exists()){
                 try {
                     output.write(NONEXISTENT_FILE_CONTENTS);
@@ -162,7 +161,6 @@ public class FileManager {
             }
 
         }
-
         return output.toByteArray();
     }
 }
