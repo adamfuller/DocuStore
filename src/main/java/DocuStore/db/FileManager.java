@@ -149,6 +149,7 @@ public class FileManager {
             File file = new File(path);
             System.out.println("About to parse file: " + file.getAbsolutePath());
             if (!file.exists()){
+                System.out.println("File doesn't exist: " + file.getAbsolutePath());
                 try {
                     output.write(NONEXISTENT_FILE_CONTENTS);
                     output.write(separator);
@@ -161,11 +162,15 @@ public class FileManager {
             try{
                 output.write(fetch(file));
                 output.write(separator);
+                System.out.println("Filed read: " + file.getAbsolutePath());
             } catch (IOException e) {
                 e.printStackTrace();
             }
 
         }
-        return output.toByteArray();
+
+        byte[] vals = output.toByteArray();
+        System.out.println("fetchMultiple output size: " + vals.length);
+        return vals;
     }
 }
