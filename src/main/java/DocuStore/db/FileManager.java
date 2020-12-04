@@ -11,6 +11,10 @@ public class FileManager {
     private static final byte[] NONEXISTENT_FILE_CONTENTS = " ".getBytes();
 
     private static String makeSafe(String filePath){
+        if (filePath == null){
+            return null;
+        }
+        System.out.println("Making safe: " + filePath);
         String sep = File.separator;
         // Replace all current filepath separators with current filesystem ones
         filePath = filePath.replace("/", sep).replace("\\", sep);
@@ -108,11 +112,12 @@ public class FileManager {
     public static byte[] fetch(String id, String path){
         System.out.println("in FileManager.fetch: " + fileReads + ", " + fileStores);
         if ( (id == null || id.trim().length() == 0) && path != null ){
-            File p = new File(path);
+            File p = new File(makeSafe(path));
             String[] files = p.list((dir, name) -> name.endsWith(".svbl"));
             if (files == null){
                 return NONEXISTENT_FILE_CONTENTS;
             }
+            System.out.println("Doing multi-fetch request");
             return fetchMultiple(files);
         }
         String filePath = makeSafe(id, path);

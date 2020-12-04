@@ -47,6 +47,8 @@ public class InputStreamHelper {
             byte[] data =  splitData.size() > DATA_INDEX ? splitData.get(DATA_INDEX) : new byte[0];
             boolean isFetchRequest = data.length <= 3;
 
+            System.out.println("Fetch Request for: id:" + id +", path:" + path);
+
             App.printBytes("in InputStreamHelper.process: ", data);
 
 //            System.out.println("ID: " + id + ", PATH: " + path + ", DATA: " + new String(data).replace("\n", ""));
