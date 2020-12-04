@@ -26,7 +26,7 @@ public class FileManager {
         }
 
         // Remove any . to prevent dot notation funny business
-        return BASE_PATH + filePath.replace("..", "");
+        return filePath.replace("..", "");
     }
 
     private static String makeSafe(String id, String path){
@@ -36,7 +36,7 @@ public class FileManager {
         }
 
         String safeId = makeSafe(id);
-        return safeFilePath + safeId + ".svbl";
+        return BASE_PATH + safeFilePath + safeId + ".svbl";
     }
 
     public static boolean store(String id, String path, byte[] data){
