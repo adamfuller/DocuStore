@@ -171,6 +171,7 @@ public class FileManager {
 
         byte[] vals = output.toByteArray();
         System.out.println("fetchMultiple output size: " + vals.length);
+        App.printBytes("fetchMultiple output: ", vals);
         return vals;
     }
 }
