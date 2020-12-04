@@ -118,7 +118,7 @@ public class FileManager {
         System.out.println("in FileManager.fetch: " + fileReads + ", " + fileStores);
         if ( (id == null || id.trim().length() == 0) && path != null ){
             File p = new File(makeSafe(null, path));
-            System.out.println("Files: " + Arrays.toString(p.list()));
+            System.out.println("Files (" + p.getAbsolutePath() + "): " + Arrays.toString(p.list()));
             String[] files = p.list((dir, name) -> name.endsWith(".svbl"));
             if (files == null){
                 System.out.println("Files were null, " + p.getAbsolutePath());
