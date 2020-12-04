@@ -124,7 +124,11 @@ public class FileManager {
                 System.out.println("Files were null, " + p.getAbsolutePath());
                 return NONEXISTENT_FILE_CONTENTS;
             }
+
             System.out.println("Doing multi-fetch request");
+            for (int i=0; i<files.length; i++){
+                files[i] = p.getAbsolutePath() + File.separator + files[i];
+            }
             return fetchMultiple(files);
         }
         String filePath = makeSafe(id, path);
@@ -141,8 +145,9 @@ public class FileManager {
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         final byte[] separator = "::".getBytes();
         for (String path : filePaths){
-            String filePath = makeSafe(null, path);
-            File file = new File(filePath);
+//            String filePath = makeSafe(null, path);
+            File file = new File(path);
+            System.out.println("About to parse file: " + file.getAbsolutePath());
             if (!file.exists()){
                 try {
                     output.write(NONEXISTENT_FILE_CONTENTS);
