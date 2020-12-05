@@ -203,6 +203,9 @@ public class FileManager {
         }
 
         byte[] vals = output.toByteArray();
+        if (vals.length == 0){
+            return NONEXISTENT_FILE_CONTENTS;
+        }
         System.out.println("fetchMultiple output size: " + vals.length);
         App.printBytes("fetchMultiple output: ", vals);
         return vals;
