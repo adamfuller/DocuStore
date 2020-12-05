@@ -38,17 +38,24 @@ public class InputStreamHelper {
         return output.toByteArray();
     }
 
+    private static String trimToNull(String input){
+        if (input == null || input.trim().length() == 0){
+            return null;
+        }
+        return input.trim();
+    }
+
     public static Optional<byte[]> process(InputStream stream){
         //NOTE: THis is where encryption/decryption will occur
         try {
             byte[] input = readInputStream(stream);
-//            System.out.println("InSH process output: " + new String(input));
+            System.out.println("InSH process output: " + new String(input));
 
             ArrayList<byte[]> splitData = splitBytes(input);
 
-            String op = splitData.size() > OP_INDEX ? new String(splitData.get(OP_INDEX)) : null;
-            String id = splitData.size() > ID_INDEX ? new String(splitData.get(ID_INDEX)) : null;
-            String path = splitData.size() > PATH_INDEX ? new String(splitData.get(PATH_INDEX)) : null;
+            String op = splitData.size() > OP_INDEX ? trimToNull(new String(splitData.get(OP_INDEX))) : null;
+            String id = splitData.size() > ID_INDEX ? trimToNull(new String(splitData.get(ID_INDEX))) : null;
+            String path = splitData.size() > PATH_INDEX ? trimToNull(new String(splitData.get(PATH_INDEX))) : null;
             byte[] data =  splitData.size() > DATA_INDEX ? splitData.get(DATA_INDEX) : new byte[0];
             if (op == null){
                 return Optional.empty();
