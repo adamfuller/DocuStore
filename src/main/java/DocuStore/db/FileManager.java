@@ -59,9 +59,7 @@ public class FileManager {
                     }
                 }
 
-                if (data.length == 0){
-                    return f.delete();
-                }
+
                 FileOutputStream fileOutputStream = new FileOutputStream(f);
                 fileOutputStream.write(data);
                 fileOutputStream.flush();
@@ -74,6 +72,36 @@ public class FileManager {
             return false;
         }
         return true;
+    }
+
+    public static boolean delete(String id, String path){
+        System.out.println("in FileManager.delete: " + fileReads + ", " + fileStores);
+        boolean output = false;
+        try{
+            String filePath = makeSafe(id, path);
+            System.out.println("Deleting: "  + filePath);
+
+            while (true){
+                if ((!fileReads.containsKey(filePath) || fileReads.get(filePath) == 0 ) && !fileStores.add(filePath)){
+                    Thread.sleep(50);
+                    continue;
+                }
+                File f = new File(filePath);
+                if (!f.getParentFile().exists()){
+                    if (!f.getParentFile().mkdirs()){
+                        return false;
+                    }
+                }
+
+                output = f.delete();
+                fileStores.remove(filePath);
+                break;
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return output;
     }
 
     private static byte[] fetch(File file){

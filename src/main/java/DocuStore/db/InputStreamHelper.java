@@ -14,9 +14,13 @@ public class InputStreamHelper {
 
 //    private static byte[] PUBLIC_KEY_REQUEST = "PUBLIC_KEY:::".getBytes();
     private static final String[] labels = new String[]{"id", "path", "data"};
-    private static final int ID_INDEX = 0;
-    private static final int PATH_INDEX = 1;
-    private static final int DATA_INDEX = 2;
+    private static final String STORE_OP = "STORE";
+    private static final String FETCH_OP = "FETCH";
+    private static final String DELETE_OP = "DELETE";
+    private static final int OP_INDEX = 0;
+    private static final int ID_INDEX = 1;
+    private static final int PATH_INDEX = 2;
+    private static final int DATA_INDEX = 3;
 
     static private byte[] readInputStream(InputStream is) throws IOException {
         int count;
@@ -42,27 +46,33 @@ public class InputStreamHelper {
 
             ArrayList<byte[]> splitData = splitBytes(input);
 
+            String op = splitData.size() > OP_INDEX ? new String(splitData.get(OP_INDEX)) : null;
             String id = splitData.size() > ID_INDEX ? new String(splitData.get(ID_INDEX)) : null;
             String path = splitData.size() > PATH_INDEX ? new String(splitData.get(PATH_INDEX)) : null;
             byte[] data =  splitData.size() > DATA_INDEX ? splitData.get(DATA_INDEX) : new byte[0];
-            boolean isFetchRequest = data.length <= 3;
+            if (op == null){
+                return Optional.empty();
+            }
+            boolean isFetchRequest = op.equalsIgnoreCase(FETCH_OP);
 
             System.out.println("Fetch Request for: id:" + id +", path:" + path);
 
             if (isFetchRequest) App.printBytes("in InputStreamHelper.process: ", data);
 
 //            System.out.println("ID: " + id + ", PATH: " + path + ", DATA: " + new String(data).replace("\n", ""));
-
-            if (isFetchRequest){
-                System.out.println("Fetch Request");
-                // Input was a record request
-                return Optional.ofNullable(FileManager.fetch(id, path));
-            } else {
-                System.out.println("Store Request");
-                // Store request
-                if (!FileManager.store(id, path, data)){
-                    System.out.println("Failed to store file!");
-                }
+            op = op.toUpperCase();
+            switch (op){
+                case FETCH_OP:
+                    System.out.println("Fetch Request");
+                    return Optional.ofNullable(FileManager.fetch(id, path));
+                case STORE_OP:
+                    System.out.println("Store Request");
+                    if (!FileManager.store(id, path, data)){
+                        System.out.println("Failed to store file!");
+                    }
+                case DELETE_OP:
+                    FileManager.delete(id, path);
+                    break;
             }
 
         }catch (Exception e){
