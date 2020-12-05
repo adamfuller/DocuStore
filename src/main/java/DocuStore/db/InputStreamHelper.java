@@ -70,15 +70,16 @@ public class InputStreamHelper {
             op = op.toUpperCase();
             switch (op){
                 case FETCH_OP:
-                    System.out.println("Fetch Request");
+                    System.out.println("Operation: " + op);
                     return Optional.ofNullable(FileManager.fetch(id, path));
                 case STORE_OP:
-                    System.out.println("Store Request");
+                    System.out.println("Operation: " + op);
                     if (!FileManager.store(id, path, data)){
                         System.out.println("Failed to store file!");
                     }
                     return Optional.empty();
                 case DELETE_OP:
+                    System.out.println("Operation: " + op);
                     FileManager.delete(id, path);
                     return Optional.empty();
                 default:
