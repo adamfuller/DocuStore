@@ -77,6 +77,7 @@ public class InputStreamHelper {
                     if (!FileManager.store(id, path, data)){
                         System.out.println("Failed to store file!");
                     }
+                    break;
                 case DELETE_OP:
                     FileManager.delete(id, path);
                     break;
