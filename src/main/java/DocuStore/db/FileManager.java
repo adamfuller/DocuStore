@@ -58,6 +58,10 @@ public class FileManager {
                         return false;
                     }
                 }
+
+                if (data.length == 0){
+                    return f.delete();
+                }
                 FileOutputStream fileOutputStream = new FileOutputStream(f);
                 fileOutputStream.write(data);
                 fileOutputStream.flush();
