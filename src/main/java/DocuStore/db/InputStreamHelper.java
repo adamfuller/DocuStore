@@ -77,10 +77,12 @@ public class InputStreamHelper {
                     if (!FileManager.store(id, path, data)){
                         System.out.println("Failed to store file!");
                     }
-                    break;
+                    return Optional.empty();
                 case DELETE_OP:
                     FileManager.delete(id, path);
-                    break;
+                    return Optional.empty();
+                default:
+                    System.out.println("Landed in default, invalid request: " + new String(input));
             }
 
         }catch (Exception e){
