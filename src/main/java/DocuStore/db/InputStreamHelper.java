@@ -18,8 +18,8 @@ public class InputStreamHelper {
     private static final String FETCH_OP = "FETCH";
     private static final String DELETE_OP = "DELETE";
     private static final int OP_INDEX = 0;
-    private static final int ID_INDEX = 1;
-    private static final int PATH_INDEX = 2;
+    private static final int PATH_INDEX = 1;
+    private static final int ID_INDEX = 2;
     private static final int DATA_INDEX = 3;
 
     static private byte[] readInputStream(InputStream is) throws IOException {

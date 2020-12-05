@@ -42,9 +42,6 @@ public class FileManager {
     public static boolean store(String id, String path, byte[] data){
         System.out.println("in FileManager.store: " + fileReads + ", " + fileStores);
         try{
-            if (id.trim().length() == 0){
-                id = null;
-            }
             String filePath = makeSafe(id, path);
             System.out.println("Storing at: "  + filePath);
 
