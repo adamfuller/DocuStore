@@ -92,7 +92,6 @@ public class FileManager {
                         return false;
                     }
                 }
-
                 output = f.delete();
                 fileStores.remove(filePath);
                 break;
@@ -173,6 +172,9 @@ public class FileManager {
     }
 
     private static byte[] fetchMultiple(String... filePaths) {
+        if (filePaths == null || filePaths.length == 0){
+            return NONEXISTENT_FILE_CONTENTS;
+        }
         System.out.println("in fetchMultiple " + Arrays.toString(filePaths));
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         final byte[] separator = "::".getBytes();
@@ -198,7 +200,6 @@ public class FileManager {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
         }
 
         byte[] vals = output.toByteArray();
